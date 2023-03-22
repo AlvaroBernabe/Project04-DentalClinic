@@ -1,59 +1,61 @@
-const { Appointment, Doctor, Role, Service, User } = require("../models")
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
+const { Appointment, Service, User, Doctor } = require("../models")
 const appointmentController = {};
 
-appointmentController.newAppointmentAdmin = async (req, res) => {
-    process.env.JWT_KEY
-    req.params.id;
+appointmentController.newAppointment = async (req, res) => {
     try {
-        const { service_id, user_id, doctor_id, payment, comment } = req.body;
+        const { service_id, user_id, doctor_id, payment, date } = req.body;
         const newAppointment = {
             service_id: service_id,
-            userId: user_id,
+            user_id: req.userId,
             doctor_id: doctor_id,
             payment: payment,
-            comment: comment
+            date: date
         }
         const appointments = await Appointment.create(newAppointment)
         return res.json(appointments)
     } catch (error) {
-        return res.status(500).send(error.message)
+        return res.status(500).json({
+            success: false,
+            message: "Ups, something were wrong",
+            error: error.message
+        })
     }
 }
 
 appointmentController.updateAppointment = async (req, res) => {
     try {
         const actualizar = req.body;
-        await Appointment.update(
+        const appointmentupdated = await Appointment.update(
             {
             service_id: actualizar.service_id,
             user_id: actualizar.user_id,
             doctor_id: actualizar.doctor_id, 
             payment: actualizar.payment,
-            comment: actualizar.comment,
+            date: actualizar.date,
             },
             {
             where: {
-                user_id: req.userId 
+                id: req.params.id, 
+                user_id: req.userId
             },
             }
         );
+        console.log(appointmentupdated) 
         res.json({
             message: "Actualizada cita correctamente",
         });
-        } catch (error) {
-        console.error(error);
-        res.status(500).json({
-            error: error.message,
-        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: "Ups, something were wrong",
+            error: error.message
+        })
     }
 }
 
 appointmentController.showAppointmentasDoctorByUserid = async (req, res) => {
     try {
         req.params.id;
-        process.env.JWT_KEY
     let citasActivas = await Appointment.findAll({
         where: {
             user_id: req.params.id,
@@ -62,7 +64,7 @@ appointmentController.showAppointmentasDoctorByUserid = async (req, res) => {
         model: User,
         attributes: ['fullName','role_id','phone'],
         },
-        attributes: ['service_id', 'user_id', "doctor_id", "payment", "comment"]
+        attributes: ['service_id', 'user_id', "doctor_id", "payment", "date"]
         });
         res.json({
         message: `These are all the appointment of the userId: ${req.params.id}`,
@@ -79,18 +81,25 @@ appointmentController.showAppointmentasDoctorByUserid = async (req, res) => {
 
 
 appointmentController.getAllAppointment = async (req, res) => {
-    process.env.JWT_KEY
-let citasActivas = await Appointment.findAll({
-    // include: {
-    // model: User,
-    // attributes: ['fullName','role_id','phone'],
-    // },
-    attributes: ['service_id', 'user_id', "doctor_id", "payment", "comment"]
-  });
-  res.status(200).json({
-    message: `These are all the appointment in the calendar`,
-    citasActivas,
-  });
+    try {
+        let citasActivas = await Appointment.findAll({
+            include: {
+            model: User,
+            attributes: ['fullName','role_id','phone'],
+            },
+            attributes: ['service_id', 'user_id', "doctor_id", "payment", "date"]
+        });
+            res.status(200).json({
+            message: `These are all the appointment in the calendar`,
+            citasActivas,
+        });   
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: "Ups, something were wrong",
+            error: error.message
+        })
+    }
 }
 
 
@@ -117,7 +126,11 @@ appointmentController.showAppointmeasUser = async (req, res) => {
         )
         return res.json(userCitas)
     } catch (error) {
-        return res.status(500).send(error.message)
+        return res.status(500).json({
+            success: false,
+            message: "Ups, something were wrong",
+            error: error.message
+        })
     }
 }
 
@@ -132,8 +145,38 @@ appointmentController.deleteAllAppointment = async (req, res) => {
         )
         return res.json(userCitas)
     } catch (error) {
-        return res.status(500).send(error.message)
+        return res.status(500).json({
+            success: false,
+            message: "Ups, something were wrong",
+            error: error.message
+        })
     }
 }
+
+appointmentController.getMyAppointmentsAsDoctor = async (req, res) => {
+    try {
+        const doctorId= req.userId;
+        const appointments = await Appointment.findAll(
+            {
+                where: {
+                    id: doctorId
+                },
+            },
+        );
+        return res.json(
+            {
+            success: true,
+            message: "Succesfully recovered my appointment as a Doctor",
+            data: appointments
+            });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: "Ups, something were wrong",
+            error: error.message
+        })
+    }
+}
+    
 
 module.exports = appointmentController;
