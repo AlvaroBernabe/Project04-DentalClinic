@@ -24,6 +24,8 @@ appointmentController.newAppointment = async (req, res) => {
 
 appointmentController.updateAppointment = async (req, res) => {
     try {
+        const userId = req.userId
+        const appointmentId = req.params.id;
         const actualizar = req.body;
         const appointmentupdated = await Appointment.update(
             {
@@ -35,8 +37,8 @@ appointmentController.updateAppointment = async (req, res) => {
             },
             {
             where: {
-                id: req.params.id, 
-                user_id: req.userId
+                id: appointmentId, 
+                user_id: userId
             },
             }
         );

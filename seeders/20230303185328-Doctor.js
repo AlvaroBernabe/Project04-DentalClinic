@@ -6,14 +6,14 @@ module.exports = {
         const doctors = [];
         doctors.push({
         id: 1,
-        user_id: 2,
+        user_id: 1,
         specialty: "Orthodontics",
         createdAt: new Date(),
         updatedAt: new Date(),
         });
         doctors.push({
         id: 2,
-        user_id: 4,
+        user_id: 2,
         specialty: "Oral Surgery",
         createdAt: new Date(),
         updatedAt: new Date(),
